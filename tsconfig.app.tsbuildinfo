@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/animatedbackground.tsx","./src/components/benchmarkssection.tsx","./src/components/demosection.tsx","./src/components/featuressection.tsx","./src/components/footer.tsx","./src/components/herosection.tsx","./src/components/navigation.tsx","./src/types/lucide-react.d.ts"],"version":"5.6.3"}
