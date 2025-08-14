@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Copy, Check, Code } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Copy, Check } from 'lucide-react';
 import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
 import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -9,13 +9,31 @@ SyntaxHighlighter.registerLanguage('python', python);
 
 export const DemoSection: React.FC = () => {
   const [copiedCode, setCopiedCode] = useState(false);
-  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [progress, setProgress] = useState(0);
+  const animationRef = useRef<number>();
 
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
+  const updateProgress = () => {
+    if (videoRef.current && !isNaN(videoRef.current.duration) && videoRef.current.duration > 0) {
       const percentage = (videoRef.current.currentTime / videoRef.current.duration) * 100;
       setProgress(percentage);
+    }
+    animationRef.current = requestAnimationFrame(updateProgress);
+  };
+
+  useEffect(() => {
+    animationRef.current = requestAnimationFrame(updateProgress);
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, []);
+
+  const handleVideoEnd = () => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play();
     }
   };
   const sampleCode = `# Full working script end-to-end
@@ -131,33 +149,37 @@ print("\\n".join(linkedins[:20]))`;
         </div>
         
         <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-start">
-          {/* Demo Placeholder */}
+          {/* Demo Video */}
           <div className="group bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden hover:border-cyan-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-cyan-500/10">
             <div className="flex items-center justify-between p-4 sm:p-6 bg-gradient-to-r from-gray-800/80 to-gray-700/80 border-b border-gray-600/50">
               <h3 className="text-lg sm:text-xl font-semibold text-cyan-400 flex items-center space-x-3">
                 <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse" />
-                <span>Live Web Agent Demo</span>
+                <span className="hidden sm:inline">Live Web Agent Demo</span>
+                <span className="sm:hidden">Web Agent Demo</span>
               </h3>
+              <div className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-gray-700/50 rounded-lg backdrop-blur-sm border border-gray-600/30 invisible">
+                <span className="text-gray-300 text-sm sm:text-base">Copy</span>
+              </div>
             </div>
-            <div className="relative" style={{ height: '24rem' }}>
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 w-full h-full flex items-center justify-center relative overflow-hidden">
+            <div className="relative text-xs">
+              <div className="bg-black" style={{ margin: 0, height: '24rem', position: 'relative' }}>
                 <video
                   ref={videoRef}
                   src={demoVideo}
                   autoPlay
-                  loop
                   muted
                   playsInline
-                  onTimeUpdate={handleTimeUpdate}
+                  onEnded={handleVideoEnd}
                   className="w-full h-full object-contain"
                 />
                 <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-700/50">
                   <div 
                     className="h-full bg-cyan-400" 
-                    style={{ width: `${progress}%` }}
+                    style={{ width: `${progress}%`, transition: 'none' }}
                   />
                 </div>
               </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
             </div>
           </div>
 
